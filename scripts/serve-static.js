@@ -24,6 +24,15 @@ const mimeTypes = {
   '.woff2': 'font/woff2',
 };
 
+function escapeHtml(value) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 async function generateDirListing(dirPath, reqUrl) {
   const files = await fs.readdir(dirPath);
   let html = `
@@ -40,7 +49,7 @@ async function generateDirListing(dirPath, reqUrl) {
       </style>
     </head>
     <body>
-      <h1>Directory: ${reqUrl}</h1>
+      <h1>Directory: ${escapeHtml(reqUrl)}</h1>
       <ul>
   `;
 
@@ -52,7 +61,7 @@ async function generateDirListing(dirPath, reqUrl) {
     const filePath = path.join(dirPath, file);
     const stats = await fs.stat(filePath);
     const link = encodeURIComponent(file) + (stats.isDirectory() ? '/' : '');
-    html += `<li><a href="${link}">${file}${stats.isDirectory() ? '/' : ''}</a></li>`;
+    html += `<li><a href="${link}">${escapeHtml(file)}${stats.isDirectory() ? '/' : ''}</a></li>`;
   }
 
   html += `
@@ -72,7 +81,13 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
-    const filePath = path.join(STATIC_DIR, decodeURIComponent(req.url));
+    const requestPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    const filePath = path.resolve(STATIC_DIR, `.${requestPath}`);
+    if (filePath !== STATIC_DIR && !filePath.startsWith(`${STATIC_DIR}${path.sep}`)) {
+      res.writeHeader(403, { 'Content-Type': 'text/plain' });
+      res.end('403 Forbidden');
+      return;
+    }
     const stats = await fs.stat(filePath);
 
     if (stats.isDirectory()) {
