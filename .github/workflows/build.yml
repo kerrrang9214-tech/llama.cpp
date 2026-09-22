@@ -51,6 +51,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref && github.ref || github.run_id }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   GGML_NLOOP: 3
   GGML_N_THREADS: 1
