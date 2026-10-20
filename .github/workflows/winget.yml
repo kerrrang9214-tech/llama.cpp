@@ -10,7 +10,8 @@ jobs:
     name: Update Winget Package
     runs-on: ubuntu-latest
     if: github.repository_owner == 'ggml-org'
-
+    permissions:
+      contents: read
     steps:
       - name: Install cargo binstall
         uses: cargo-bins/cargo-binstall@268643a6b5ea099f5718ee5cd3ff7dc89a5eb49b

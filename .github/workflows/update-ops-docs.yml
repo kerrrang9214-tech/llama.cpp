@@ -15,7 +15,8 @@ on:
 jobs:
     update-ops-docs:
         runs-on: ubuntu-slim
-
+        permissions:
+          contents: read
         steps:
         - name: Checkout repository
           uses: actions/checkout@v6
